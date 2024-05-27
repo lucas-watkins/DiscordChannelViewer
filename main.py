@@ -12,6 +12,9 @@ except IndexError:
 
 token_file_path = os.path.dirname(__file__) + '/token.dat' 
 
+vcs = []
+txtc = []
+
 if not Path.exists(Path(token_file_path)):
     token = input('Discord Token: ')
     with open(token_file_path, 'wb') as file_handler:
@@ -44,43 +47,39 @@ def get_type(c: dict) -> str:
             return ' (Hidden)'
     
     return ''
-    
 
-def parse_channel(c: dict) -> str | None:
-    match c['type']:
+
+def append(item: str, typ: int) -> None:
+    if hidden_only and '(Hidden)' in item or not hidden_only:
+        match typ:
+            case 0:
+                txtc.append(item)
+            case 2:
+                vcs.append(item)
+
+
+def parse_channel(c: dict) -> None:
+    typ = c['type']
+    match typ:
         case 2:
             resp = f'VC Name: {c['name']}, Last Connect On: {parse_snowflake_id(c.get('last_message_id', 'N/A'))}'
         case 0:
             resp = f'Name: #{c['name']}, Topic: {c.get('topic', 'N/A')}, \
 Last Message Sent On: {parse_snowflake_id(c.get('last_message_id', 'N/A'))}'
         case _:
-            return None
-    
-    return resp + f'{get_type(c['permission_overwrites'])}\n'
+            resp = None
+
+    if resp is not None:
+        append(resp + f'{get_type(c['permission_overwrites'])}\n', typ)
         
       
 def printfunc(x: list):
     for i in x:
         print(i)
-        
-        
-def append(item, l1, l2):
-    if '#' in channel:
-        l1.append(item)
-    else:
-        l2.append(item)
 
 
-channels = map(lambda x: parse_channel(x), json)
-vcs = []
-txtc = []
-for channel in channels:
-    if channel is not None:
-        if hidden_only:
-            if '(Hidden)' in channel:
-                append(channel, txtc, vcs)
-        else:
-            append(channel, txtc, vcs)
+for channel in json:
+    parse_channel(channel)
 
 if not all(i is None for i in txtc):
     print('\nText Channels -->')
