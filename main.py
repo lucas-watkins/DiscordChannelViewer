@@ -5,11 +5,6 @@ import os
 import sys
 from datetime import datetime
 
-try:
-    hidden_only = True if sys.argv[1] == '-h' else False 
-except IndexError:
-    hidden_only = False
-
 token_file_path = os.path.dirname(__file__) + '/token.dat' 
 
 vcs = []
@@ -41,21 +36,12 @@ def parse_snowflake_id(snowflake: str) -> str:
     return time_stamp.strftime('%Y-%m-%d, %-I:%M %p')
 
 
-def get_type(c: dict) -> str:
-    for i in c:
-        if i['deny'] == '1024':
-            return ' (Hidden)'
-    
-    return ''
-
-
 def append(item: str, typ: int) -> None:
-    if hidden_only and '(Hidden)' in item or not hidden_only:
-        match typ:
-            case 0:
-                txtc.append(item)
-            case 2:
-                vcs.append(item)
+    match typ:
+        case 0:
+            txtc.append(item)
+        case 2:
+            vcs.append(item)
 
 
 def parse_channel(c: dict) -> None:
@@ -70,7 +56,7 @@ Last Message Sent On: {parse_snowflake_id(c.get('last_message_id', 'N/A'))}'
             resp = None
 
     if resp is not None:
-        append(resp + f'{get_type(c['permission_overwrites'])}\n', typ)
+        append(resp, typ)
         
       
 def printfunc(x: list):
